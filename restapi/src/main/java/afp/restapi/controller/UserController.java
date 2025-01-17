@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.tomcat.util.json.JSONParser;
+import org.springframework.boot.json.JsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,9 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import afp.restapi.models.Debug;
 import afp.restapi.models.IUsers;
 import afp.restapi.models.Users;
 import afp.restapi.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RequestMapping(path="/v1")
 @RestController
@@ -45,7 +49,9 @@ public class UserController {
 
     @PutMapping(path="/user")
     private ResponseEntity<?> updateUser(@RequestBody Users user) {
-        return new ResponseEntity<>(USERSERVICE.updateUser(user), HttpStatus.OK);
+        USERSERVICE.updateUser(user);
+        Debug.log("User upgedatet: " + user.getUserId() + ", " + user.getEmail());
+        return new ResponseEntity<>(USERSERVICE.getIUserByEmail(user.getEmail()), HttpStatus.OK);
     }
 
     @DeleteMapping(path="/user/delete")
@@ -60,8 +66,8 @@ public class UserController {
     }
     
     @PostMapping(path="/user/login")
-    private ResponseEntity<Boolean> logIn(@RequestBody Map<String, String> login){
-        return new ResponseEntity<>(USERSERVICE.logIn(login.get("password"), login.get("email")), HttpStatus.OK);
+    private ResponseEntity<Boolean> logIn(@RequestBody Map<String, String> login, HttpServletRequest request){
+        return new ResponseEntity<>(USERSERVICE.logIn(login.get("password"), login.get("email"), request), HttpStatus.OK);
     }
 
     @GetMapping(path="/miniuser/{email}")
